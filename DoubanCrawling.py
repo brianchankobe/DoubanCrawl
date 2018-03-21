@@ -46,6 +46,13 @@ def crawl_Douban(drama_types,countrys):
     come_mov = []
     index = 0
     ranking = []
+    sum_type1 = 0    #剧情类总数
+    sum_type2 = 0   #爱情类总数
+    sum_type3 = 0   #喜剧类总数
+    sum_country1 = {}
+    sum_country2 = {}
+    sum_country3 = {}
+
     dataFilePath = "E:\jnu\year 2 sem B\Project2-Crawling\ movies.csv"
     resultFilePath = "E:\jnu\year 2 sem B\Project2-Crawling\ movies.csv"
     outputFile = "E:\jnu\year 2 sem B\Project2-Crawling\ output.txt"
@@ -64,6 +71,24 @@ def crawl_Douban(drama_types,countrys):
                 rate = link.find('p').find('span', {'class': 'rate'}).contents
                 m = Movie(name,rate,countrys[i],drama_types[j],info_link,cover_link)
                 url_need.append(getMovies(m))
+                if index == 0:
+                    sum_type1 += 1
+                    if countrys[i] in sum_country1:
+                        sum_country1[countrys[i]] += 1
+                    else:
+                        sum_country1[countrys[i]] = 1
+                elif index == 1:
+                    sum_type2 += 1
+                    if countrys[i] in sum_country2:
+                        sum_country2[countrys[i]] += 1
+                    else:
+                        sum_country2[countrys[i]] = 1
+                elif index == 2:
+                    sum_type3 += 1
+                    if countrys[i] in sum_country3:
+                        sum_country3[countrys[i]] += 1
+                    else:
+                        sum_country3[countrys[i]] = 1
             if index == 0:  #这是剧情类drama
                 if countrys[i] != countrys[-1]:  #last one country
                     drama_mov.append(url_need)
@@ -88,34 +113,33 @@ def crawl_Douban(drama_types,countrys):
     url_need.append(come_mov)
     write_result(url_need,resultFilePath)
 
-    
+    with open(outputFile,'w') as f:
+        f.write("the ranking is\n")
+        ranking = rank(sum_country1)
+        for i in ranking:
+            f.write("%s " % i)
+            f.write("%f\n" % (sum_country1[i] / sum_type1))
+
+        ranking = rank(sum_country2)
+        f.write("\nthe ranking is\n")
+        for i in ranking:
+            f.write("%s " % i)
+            f.write("%f\n" % (sum_country2[i] / sum_type2))
+
+        ranking = rank(sum_country3)
+        f.write("\nthe ranking is\n")
+        for i in ranking:
+            f.write("%s " % i)
+            f.write("%f\n" % (sum_country3[i] / sum_type3))
 
 
-def sum_each_type(read_file):
-    array = [0, 0, 0]
-    for line in read_file:
-        if line.find('剧情'):
-            print(line)
-            array[0] += 1
-        elif line.find('爱情'):
-            print(line)
-            array[1] += 1
-        elif line.find('喜剧'):
-            print(line)
-            array[2] += 1
-
-    return array
-
-def read_line(file_path):
-    if os.path.exists(file_path):
-            array = []
-            with open(file_path, 'r') as lines:
-                for line in lines:
-                    array.append(line)
-            return array
-    else:
-        print('file not exist: ' + file_path)
-        return None
+    print(sum_type1)
+    print(sum_type2)
+    print(sum_type3)
+    print(ranking)
+    print(sum_country1)
+    print(sum_country2)
+    print(sum_country3)
 
 def write_result(array, outputFilePath):
     with open(outputFilePath, 'w') as output_file:
@@ -128,26 +152,30 @@ def write_result(array, outputFilePath):
 
 """ ranking 1st 2nd 3rd"""
 def rank(type_arrays):
-    dict_num = {}
+    dict_num = type_arrays
+    num = []
     rank_country = []
+    count1 = 0
+    count2 = 0
+    count3 = 0
 
-    #dict_num = sum_movie(type_arrays)
-    for elements in dict_num:
-        count1 = 0
-        count2 = 0
-        count3 = 0
-        for element in elements:   #每种类型所有国家电影数量第一多
-            if elements[element] > count1:
-                count1 = elements[element]
-        rank_country.append(element)    #add champion to list
-        for element in elements:        #每类型所有国家电影数量第二多
-            if elements[element] > count2 and elements[element] < count1:
-                count2 = elements[element]
-        rank_country.append(element)     #2nd to list
-        for element in elements:        #每类型所有国家电影数量第三多
-            if elements[element] > count3 and elements[element] < count2:
-                count3 = elements[element]
-        rank_country.append(element)    #3rd to list
+    for item in dict_num:
+        if dict_num[item] > count1:
+            count1 = dict_num[item]
+    num.append(count1)
+    for item in dict_num:
+        if dict_num[item] > count2 and dict_num[item] < count1:
+            count2 = dict_num[item]
+    num.append(count2)
+    for item in dict_num:
+        if dict_num[item] > count3 and dict_num[item] < count2:
+            count3 = dict_num[item]
+    num.append(count3)
+
+    for i in num:
+        for item in dict_num:
+            if dict_num[item] == i:
+                rank_country.append(item)
 
     return rank_country
 
@@ -155,14 +183,8 @@ def rank(type_arrays):
 
 #country's list
 countrys = ["大陆", "美国", "香港", "台湾", "日本", "韩国", "英国", "法国", "德国", "意大利", "西班牙", "印度", "泰国", "俄罗斯", "伊朗", "加拿大", "澳大利亚", "爱尔兰", "瑞典", "巴西", "丹麦"]
-test = ["大陆", "美国", "香港", "台湾"]
 #type list
 drama_types = ["剧情","爱情","喜剧"]
 
+crawl_Douban(drama_types,countrys)
 
-
-#crawl_Douban(drama_types,test)
-
-array = read_line("E:\jnu\year 2 sem B\Project2-Crawling\ movies.csv")
-
-print(sum_each_type(array))
