@@ -5,6 +5,7 @@ import time
 from bs4 import BeautifulSoup
 from lxml import etree
 import os
+import codecs
 
 #define a class
 class Movie:
@@ -30,15 +31,13 @@ return a list of Movie objects with the given category and location.
 """
 def getMovies(movie):
     array = []
-    record = []
     array.append(movie.name)
     array.append(movie.rate)
     array.append(movie.location)
     array.append(movie.category)
     array.append(movie.info_link)
     array.append(movie.cover_link)
-    record.append(array)
-    return record
+    return array
 
 def crawl_Douban(drama_types,countrys):
     drama_mov = []
@@ -53,16 +52,16 @@ def crawl_Douban(drama_types,countrys):
     sum_country2 = {}
     sum_country3 = {}
 
-    dataFilePath = "E:\jnu\year 2 sem B\Project2-Crawling\ movies.csv"
-    resultFilePath = "E:\jnu\year 2 sem B\Project2-Crawling\ movies.csv"
-    outputFile = "E:\jnu\year 2 sem B\Project2-Crawling\ output.txt"
+    dataFilePath = "./ movies.csv"
+    resultFilePath = "./ movies.csv"
+    outputFile = "./ output.txt"
 
     # find the data from these country about three types of movie
     for j in range(len(drama_types)):
         for i in range(len(countrys)):
             url_need = []           #存电影 store the movie
-            html = expanddouban.getHtml(getMovieUrl(drama_types[j], countrys[i]))
-            soup = BeautifulSoup(html)
+            html = expanddouban.getHtml(getMovieUrl(drama_types[j], countrys[i]), True, 1)
+            soup = BeautifulSoup(html, 'html.parser')
             for link in soup.find_all('a', {'class': 'item'}):
                 info_link = link.get('href')
                 a = link.find('div',{'class': 'cover-wp'}).find('span', {'class': 'pic'}).find('img')
@@ -113,7 +112,7 @@ def crawl_Douban(drama_types,countrys):
     url_need.append(come_mov)
     write_result(url_need,resultFilePath)
 
-    with open(outputFile,'w') as f:
+    with codecs.open(outputFile,'w','utf-8_sig') as f:
         f.write("the ranking is\n")
         ranking = rank(sum_country1)
         for i in ranking:
@@ -133,16 +132,9 @@ def crawl_Douban(drama_types,countrys):
             f.write("%f\n" % (sum_country3[i] / sum_type3))
 
 
-    print(sum_type1)
-    print(sum_type2)
-    print(sum_type3)
-    print(ranking)
-    print(sum_country1)
-    print(sum_country2)
-    print(sum_country3)
 
 def write_result(array, outputFilePath):
-    with open(outputFilePath, 'w') as output_file:
+    with codecs.open(outputFilePath, 'w', 'utf-8') as output_file:
         for item in array:   #1st type
             for i in item:    #1st country
                 for j in i:    #1st movie
@@ -183,6 +175,7 @@ def rank(type_arrays):
 
 #country's list
 countrys = ["大陆", "美国", "香港", "台湾", "日本", "韩国", "英国", "法国", "德国", "意大利", "西班牙", "印度", "泰国", "俄罗斯", "伊朗", "加拿大", "澳大利亚", "爱尔兰", "瑞典", "巴西", "丹麦"]
+
 #type list
 drama_types = ["剧情","爱情","喜剧"]
 
